@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learn Sorting</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to right, #400244, #801696, #6f1b88);
+      font-family: 'Poppins', sans-serif;
+    }
+    .bar {
+      display: inline-flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin: 0 1px;
+      background: #60a5fa;
+      color: rgb(0, 0, 0);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body class="text-white flex flex-col items-center p-6">
+
+  <!-- Cute Gif -->
+  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjJoMGp4MzUwZzh1eWI0YzM4Z3I1Z3hseTUxOTM3YzZybzlhZGVzdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/f3iwJFOVOwuy7K6FFw/giphy.gif"
+       alt="Sorting Gif"
+       class="w-28 mb-4 rounded-xl shadow-xl"/>
+
+  <h1 class="text-4xl font-bold mb-4">Learn Sorting</h1>
+
+  <!-- Input Area -->
+  <div class="mb-4 w-full max-w-md">
+    <input id="arrayInput" type="text" placeholder="Enter numbers separated by space"
+           class="w-full px-4 py-2 rounded text-black"/>
+  </div>
+
+  <!-- Controls -->
+  <div class="mb-4 flex gap-2 items-center">
+    <select id="algorithm" class="px-4 py-2 rounded text-black">
+      <option value="bubble">Bubble Sort</option>
+      <option value="insertion">Insertion Sort</option>
+      <option value="selection">Selection Sort</option>
+      <option value="merge">Merge Sort</option>
+      <option value="quick">Quick Sort</option>
+      <option value="heap">Heap Sort</option>
+    </select>
+    <button onclick="startSort()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded">Sort</button>
+  </div>
+
+  <!-- Input Display -->
+  <div id="inputDisplay" class="mb-2 text-lg font-medium"></div>
+
+  <!-- Description of action -->
+  <div id="description" class="mb-4 text-yellow-300 text-md font-semibold"></div>
+
+  <!-- Step counter -->
+  <div id="stepCounter" class="mb-2 text-sm opacity-75"></div>
+
+  <!-- Bar Container -->
+  <div id="bars" class="flex items-end h-64 w-full max-w-3xl border-t border-white"></div>
+
+  <script>
+    let delay = 1000;
+    let description = document.getElementById("description");
+    let stepCounter = document.getElementById("stepCounter");
+
+    function drawArray(array, highlight = []) {
+      const bars = document.getElementById("bars");
+      bars.innerHTML = "";
+      const maxVal = Math.max(...array);
+      array.forEach((val, i) => {
+        const bar = document.createElement("div");
+        bar.classList.add("bar");
+        bar.style.height = `${(val / maxVal) * 100}%`;
+        bar.style.width = `${100 / array.length}%`;
+        bar.innerText = val;
+        if (highlight.includes(i)) {
+          bar.style.background = "#facc15";
+          bar.style.color = "#000";
+        }
+        bars.appendChild(bar);
+      });
+    }
+
+    async function startSort() {
+      let input = document.getElementById("arrayInput").value.trim();
+      let array = input.split(/\s+/).map(Number);
+      if (!array.length || array.some(isNaN)) return alert("Invalid input.");
+      document.getElementById("inputDisplay").innerText = `Input: [ ${array.join(", ")} ]`;
+      stepCounter.innerText = "";
+      description.innerText = "";
+
+      const algorithm = document.getElementById("algorithm").value;
+      await sortWithSteps(array, algorithm);
+    }
+
+    async function sortWithSteps(arr, algorithm) {
+      let steps = [], highlights = [], actions = [];
+      let a = [...arr];
+
+      const record = (highlight = [], action = "") => {
+        steps.push([...a]);
+        highlights.push([...highlight]);
+        actions.push(action);
+      };
+
+      const swap = (i, j) => {
+        [a[i], a[j]] = [a[j], a[i]];
+        record([i, j], `Swapped ${a[j]} and ${a[i]}`);
+      };
+
+      switch (algorithm) {
+        case "bubble":
+          for (let i = 0; i < a.length; i++) {
+            for (let j = 0; j < a.length - i - 1; j++) {
+              record([j, j + 1], `Comparing ${a[j]} and ${a[j + 1]}`);
+              if (a[j] > a[j + 1]) swap(j, j + 1);
+            }
+          }
+          break;
+
+        case "insertion":
+          for (let i = 1; i < a.length; i++) {
+            let key = a[i], j = i - 1;
+            record([i], `Key = ${key}`);
+            while (j >= 0 && a[j] > key) {
+              a[j + 1] = a[j];
+              record([j, j + 1], `Shifting ${a[j]} right`);
+              j--;
+            }
+            a[j + 1] = key;
+            record([j + 1], `Inserted ${key} at position ${j + 1}`);
+          }
+          break;
+
+        case "selection":
+          for (let i = 0; i < a.length; i++) {
+            let min = i;
+            for (let j = i + 1; j < a.length; j++) {
+              record([min, j], `Comparing ${a[min]} and ${a[j]}`);
+              if (a[j] < a[min]) min = j;
+            }
+            if (min !== i) swap(i, min);
+            else record([i], `No swap needed`);
+          }
+          break;
+
+        case "merge":
+          async function mergeSort(start, end) {
+            if (start >= end) return;
+            const mid = Math.floor((start + end) / 2);
+            await mergeSort(start, mid);
+            await mergeSort(mid + 1, end);
+
+            let left = a.slice(start, mid + 1);
+            let right = a.slice(mid + 1, end + 1);
+            let i = 0, j = 0, k = start;
+
+            while (i < left.length && j < right.length) {
+              record([k], `Comparing ${left[i]} and ${right[j]}`);
+              if (left[i] <= right[j]) {
+                a[k++] = left[i++];
+              } else {
+                a[k++] = right[j++];
+              }
+              record([k - 1], `Inserted value`);
+            }
+
+            while (i < left.length) {
+              a[k++] = left[i++];
+              record([k - 1], `Inserted leftover ${a[k - 1]}`);
+            }
+            while (j < right.length) {
+              a[k++] = right[j++];
+              record([k - 1], `Inserted leftover ${a[k - 1]}`);
+            }
+          }
+          await mergeSort(0, a.length - 1);
+          break;
+
+        case "quick":
+          async function quickSort(start, end) {
+            if (start >= end) return;
+            let pivot = a[end];
+            let i = start;
+            for (let j = start; j < end; j++) {
+              record([j, end], `Comparing ${a[j]} with pivot ${pivot}`);
+              if (a[j] < pivot) {
+                swap(i, j);
+                i++;
+              }
+            }
+            swap(i, end);
+            await quickSort(start, i - 1);
+            await quickSort(i + 1, end);
+          }
+          await quickSort(0, a.length - 1);
+          break;
+
+        case "heap":
+          function heapify(n, i) {
+            let largest = i;
+            const l = 2 * i + 1, r = 2 * i + 2;
+            if (l < n && a[l] > a[largest]) largest = l;
+            if (r < n && a[r] > a[largest]) largest = r;
+            if (largest !== i) {
+              swap(i, largest);
+              heapify(n, largest);
+            }
+          }
+          let n = a.length;
+          for (let i = Math.floor(n / 2) - 1; i >= 0; i--) heapify(n, i);
+          for (let i = n - 1; i > 0; i--) {
+            swap(0, i);
+            heapify(i, 0);
+          }
+          break;
+      }
+
+      for (let i = 0; i < steps.length; i++) {
+        drawArray(steps[i], highlights[i]);
+        description.innerText = actions[i];
+        stepCounter.innerText = `Step ${i + 1} of ${steps.length}`;
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  </script>
+</body>
+</html>
