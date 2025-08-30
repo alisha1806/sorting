@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sorting Visualizer</title>
+  <style>
+    body { background: #1e293b; color:white; text-align:center; font-family:sans-serif; }
+    .bar { display:inline-block; margin:1px; background:#38bdf8; }
+  </style>
+</head>
+<body>
+  <h1>Sorting Visualizer</h1>
+  <input id="nums" placeholder="e.g. 5 3 8 1 2">
+  <button onclick="start()">Bubble Sort</button>
+  <div id="bars" style="height:250px;display:flex;align-items:flex-end;justify-content:center;"></div>
+
+<script>
+const bars=document.getElementById("bars");
+function draw(arr){bars.innerHTML="";let m=Math.max(...arr);
+  arr.forEach(v=>{let d=document.createElement("div");
+    d.className="bar";d.style.height=(v/m*200)+"px";d.style.width=(400/arr.length)+"px";
+    bars.appendChild(d);});}
+async function start(){
+  let arr=document.getElementById("nums").value.split(/\s+/).map(Number);
+  for(let i=0;i<arr.length;i++)for(let j=0;j<arr.length-i-1;j++)
+    if(arr[j]>arr[j+1]){[arr[j],arr[j+1]]=[arr[j+1],arr[j]];draw(arr);await new Promise(r=>setTimeout(r,200));}
+}
+</script>
+</body>
+</html>
